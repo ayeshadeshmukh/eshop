@@ -1,0 +1,8 @@
+A server is a computer or a system that is designed to manage and process requests from other computers or devices, often referred to as clients. It provides various services and resources to clients, such as data storage, file sharing, computational power, and network connectivity. Servers are typically more powerful and have more storage capacity than regular desktop computers, as they are built to handle a larger number of simultaneous requests and to provide reliable and efficient services.
+
+Servers can serve different purposes based on the type of services they provide. Some common types of servers include:
+
+Web Servers: These servers store and deliver websites and web applications to clients over the internet using protocols like HTTP (Hypertext Transfer Protocol) or HTTPS (HTTP Secure).
+
+File Servers: These servers store and manage files and allow clients to access and share them over a network, either locally or remotely.
+To communicate with file servers we use ftp. i.e to share files from one point to another
