@@ -6,4 +6,4 @@ const watchwoman = (req, res, next )=>{
 }  
 
 
-module.export = watchwoman; 
+module.exports = watchwoman; 

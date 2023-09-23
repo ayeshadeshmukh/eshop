@@ -154,6 +154,7 @@ app.get(
       const decoded = jwt.verify(token, "this is the salt to my jwt");
 
       console.log(decoded);
+      
 
       //see whenever a user is logged in, localstorage me hamesha userinfo rahega hi rahega...
       // to iska matlab hai ki jabhi bhi vo product vala GET req karga uske headers me token rahega hi rahega..to middleware me humlog yahi check karlege ki agar token present hai iska matlanb user logged in hai and apun next() call kardege.
