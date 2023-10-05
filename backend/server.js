@@ -32,14 +32,14 @@ var con = mysql.createConnection({
 
 // app.get(endpoint, callback_function);   //
 
-app.get("/message/bhai", (req, res) => {
+app.get("/message/isworking", (req, res) => {
   res.status(201).json({
-    message: "Hello",
+    message: "Hello, the server is workingh !!!",
   });
 });
 
 app.post("/user/signup", (req, res) => {
-  console.log("i am inside signup code");
+  console.log("/user/signup endpoint hitted");
   // const myname = req.body.name
   // console.log(myname)
   const { name, phone, email, password, cpassword } = req.body;
@@ -77,7 +77,7 @@ app.post("/user/signup", (req, res) => {
 });
 
 app.post("/user/signin", (req, res) => {
-  console.log("i am inside signin code");
+  console.log("/user/signin endpoint hitted");
   // const myname = req.body.name
   // console.log(myname)
   const { email, password } = req.body;
@@ -117,18 +117,18 @@ app.post("/user/signin", (req, res) => {
 });
 
 app.post("/admin/addproduct", (req, res) => {
-  const { productname, description, price, category } = req.body;
-  console.log(productname, description, price, category);
+  const { productname, description, price, category, productID } = req.body;
+  console.log(productname, description, price, category, productID);
 
   con.connect((error) => {
     if (error) {
       throw error;
     } else {
-      sql3 = `insert into eshop.addproduct (productname, description,price,category) values( '${productname}' , '${description}', '${price}','${category}')`;
+      sql3 = `insert into eshop.addproduct (productname, description,price,category,productID) values( '${productname}' , '${description}', '${price}','${category}', '${productID}')`;
 
       con.query(sql3, function (err, result) {
         if (err) throw err;
-        console.log("1 record inserted");
+        console.log("1 product added in database");
 
         res.status(201).json({
           message: "1 product add",
@@ -138,39 +138,53 @@ app.post("/admin/addproduct", (req, res) => {
   });
 });
 
-app.get(
-  "/user/products",
-  (req, res, next) => {
-    if (!req.headers.token) {
-      // if ke andar ghusa iska matlab hai ki token available nahi hai
-      //to yahi pe me res me erro bhej duga
-      res.status(400).json({
-        message: "please login to access products",
-      });  
-    } else {
-      const token = req.headers.token;
-      console.log("token is ",token)
+app.get("/user/products", (req, res) => {
+  var sql4 = `SELECT * FROM eshop.addproduct`;
+  con.query(sql4, function (err, result) {
+    if (err) throw err;
 
-      const decoded = jwt.verify(token, "this is the salt to my jwt");
+    res.status(201).json(result);
+  });
+});
 
-      console.log(decoded);
-      
 
-      //see whenever a user is logged in, localstorage me hamesha userinfo rahega hi rahega...
-      // to iska matlab hai ki jabhi bhi vo product vala GET req karga uske headers me token rahega hi rahega..to middleware me humlog yahi check karlege ki agar token present hai iska matlanb user logged in hai and apun next() call kardege.
+app.post("/user/addcart", (req,res)=>{
+   const{productid} = req.body
 
-      next();
-    }
-  },
-  (req, res) => {
-    var sql4 = `SELECT * FROM eshop.addproduct`;
-    con.query(sql4, function (err, result) {
-      if (err) throw err;
 
-      res.status(201).json(result);
-    });
-  }
-);
+   console.log("add to cart");
+
+
+   con.connect((error) => {
+     if (error) {
+       throw error;
+     } else {
+       var sql = `Select * from addcart where productID = ${productid}`;
+
+       con.query(sql, function (err, result) {
+         if (err) throw err;
+         
+         if(result.length == 0){
+          sql = `insert into eshop.addcart (productID,quantity) values( '${productid}', '${1}')` ;
+         
+
+         con.query(sql,function(err,result) {
+            if(err) throw err;
+
+            else{
+                res.status(201).json({
+                  message : "One product added in cart"
+                })
+            }
+
+
+         })
+        }
+       });
+     }
+   });
+
+});
 
 app.listen(PORT, () => {
   console.log("The server is running on port", PORT);
