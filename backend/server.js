@@ -2,6 +2,10 @@ const watchwoman = require("./middleware/watchwoman");
 const generateToken = require("./config/generateToken");
 const jwt = require("jsonwebtoken");
 
+// const bodyParser = require("body-parser");
+
+const multer = require("multer");
+
 const express = require("express");
 var cors = require("cors");
 const app = express();
@@ -14,6 +18,9 @@ const router = express.Router();
 app.use(express.json());
 
 app.use(cors());
+
+app.use("/uploads", express.static("uploads"));
+// app.use(bodyParser.urlencoded({extended:true}));
 
 app.use(cookieParser());
 
@@ -31,6 +38,21 @@ var con = mysql.createConnection({
 // });
 
 // app.get(endpoint, callback_function);   //
+// Serve static files from the "uploads" folder
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads"); // Destination folder for uploaded images
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname); // Unique filename
+  },
+});
+
+const upload = multer({ storage });
+
+// Serve static files
+app.use(express.static("uploads"));
 
 app.get("/message/isworking", (req, res) => {
   res.status(201).json({
@@ -116,15 +138,16 @@ app.post("/user/signin", (req, res) => {
   }); //
 });
 
-app.post("/admin/addproduct", (req, res) => {
+app.post("/admin/addproduct", upload.single("image"), (req, res) => {
   const { productname, description, price, category, productID } = req.body;
   console.log(productname, description, price, category, productID);
-
+  const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : "";
+  console.log("uploaded image path is ", imagePath);
   con.connect((error) => {
     if (error) {
       throw error;
     } else {
-      sql3 = `insert into eshop.addproduct (productname, description,price,category,productID) values( '${productname}' , '${description}', '${price}','${category}', '${productID}')`;
+      sql3 = `insert into eshop.addproduct (productname, description,price,category,productID,imagePath) values( '${productname}' , '${description}', '${price}','${category}', '${productID}', '${imagePath}')`;
 
       con.query(sql3, function (err, result) {
         if (err) throw err;
@@ -138,7 +161,7 @@ app.post("/admin/addproduct", (req, res) => {
   });
 });
 
-app.get("/user/products", (req, res) => {
+app.get("/user/products", watchwoman, (req, res) => {
   var sql4 = `SELECT * FROM eshop.addproduct`;
   con.query(sql4, function (err, result) {
     if (err) throw err;
@@ -147,44 +170,116 @@ app.get("/user/products", (req, res) => {
   });
 });
 
+app.post("/user/addcart", (req, res) => {
+  const { productid } = req.body;
 
-app.post("/user/addcart", (req,res)=>{
-   const{productid} = req.body
+  console.log("add to cart");
 
+  con.connect((error) => {
+    if (error) {
+      throw error;
+    } else {
+      var sql = `Select * from addcart where productID = ${productid}`;
 
-   console.log("add to cart");
+      con.query(sql, function (err, result) {
+        if (err) throw err;
 
+        if (result.length == 0) {
+          sql = `insert into eshop.addcart (productID,quantity) values( '${productid}', '${1}')`;
 
-   con.connect((error) => {
-     if (error) {
-       throw error;
-     } else {
-       var sql = `Select * from addcart where productID = ${productid}`;
+          con.query(sql, function (err, result) {
+            if (err) throw err;
+            else {
+              res.status(201).json({
+                message: "One product added in cart",
+              });
+            }
+          });
+        } else {
+          sql = `SELECT * from eshop.addcart where productID = '${productid}'`;
 
-       con.query(sql, function (err, result) {
-         if (err) throw err;
-         
-         if(result.length == 0){
-          sql = `insert into eshop.addcart (productID,quantity) values( '${productid}', '${1}')` ;
-         
+          con.query(sql, function (err, result) {
+            if (err) throw err;
+            else {
+              console.log(result);
 
-         con.query(sql,function(err,result) {
-            if(err) throw err;
+              let quant = parseInt(result[0].quantity) + 1;
+              sql = `UPDATE eshop.addcart SET quantity = '${quant}' WHERE productID = '${productid}'`;
 
-            else{
-                res.status(201).json({
-                  message : "One product added in cart"
-                })
+              con.query(sql,  function(err,result){
+                if (err) throw err;
+                else{
+                 res.status(201).json({
+                  message : "Quantity updated"
+                 })
+
+                }
+              })
             }
 
+             
+             
 
-         })
+          });
+
+
         }
-       });
-     }
-   });
-
+      });
+    }
+  });
 });
+
+app.get("/user/getcartdetails", (req, res) => {
+  const sql = `SELECT * from eshop.addcart`;
+
+  con.connect((error) => {
+    if (error) {
+      throw error;
+    } else {
+      con.query(sql, function (err, result) {
+        if (err) throw err;
+        console.log(result);
+
+        const myresult = [];
+        let count = 0;
+
+        for (let i = 0; i < result.length; i++) {
+          const pid = result[i].productID;
+          const quantity = result[i].quantity;
+          const productSql = `SELECT * from eshop.addproduct  where productID = '${pid}' `;
+
+          con.query(productSql, function (err, productResult) {
+            if (err) {
+              console.error(err);
+              res.status(500).send("An error occurred.");
+              return;
+            }
+
+            const details = {
+              detail: productResult[0],
+              quantity: quantity,
+            };
+
+            console.log(details);
+
+            myresult.push(details);
+
+            count++; // Increment the count for each query completed
+
+            if (count === result.length) {
+              // All queries are done
+              res.status(201).json(myresult);
+            }
+          });
+        }
+      });
+    }
+  });
+});
+
+//app.get("end point" , handler)  --bare minimum api syntax
+
+//app.post("end point" , middleware, handler)    --using middleware
 
 app.listen(PORT, () => {
   console.log("The server is running on port", PORT);
