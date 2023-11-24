@@ -1,4 +1,4 @@
-const mysql = require("mysql2/promise"); // Note the use of the promise version
+const mysql = require("mysql2/promise");
 const asyncHandler = require("express-async-handler");
 
 const getcartdetails = asyncHandler(async (req, res) => {
@@ -32,7 +32,7 @@ const getcartdetails = asyncHandler(async (req, res) => {
 
     res.status(200).json(myresult);
 
-    await connection.end(); // Close the database connection
+    await connection.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "An error occurred." });

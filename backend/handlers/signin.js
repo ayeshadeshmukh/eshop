@@ -1,13 +1,13 @@
 const mysql = require("mysql2/promise");
 const sendEmail = require("../nodeMailer/NodeMailer");
-const generateToken = require("../config/generateToken")
+const generateToken = require("../config/generateToken");
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
   password: "root",
   database: "eshop",
   port: 3307,
-  connectionLimit: 20, // Adjust the connection limit as needed
+  connectionLimit: 20,
 });
 
 const signin = async (req, res) => {
@@ -33,7 +33,7 @@ const signin = async (req, res) => {
             name: user.name,
             phone: user.phone,
             email: user.email,
-            token: generateToken(user.email), // You need to implement generateToken function
+            token: generateToken(user.email),
           });
         } else {
           res.status(201).json({
@@ -42,7 +42,7 @@ const signin = async (req, res) => {
         }
       }
     } finally {
-      connection.release(); // Release the connection back to the pool
+      connection.release();
     }
   } catch (error) {
     console.error(error);

@@ -6,7 +6,7 @@ const pool = mysql.createPool({
   password: "root",
   database: "eshop",
   port: 3307,
-  connectionLimit: 20, // Adjust the connection limit as needed
+  connectionLimit: 20,
 });
 
 const addproduct = async (req, res) => {
@@ -40,7 +40,7 @@ const addproduct = async (req, res) => {
         });
       });
     } finally {
-      connection.release(); // Release the connection back to the pool
+      connection.release();
     }
   } catch (error) {
     console.error(error);

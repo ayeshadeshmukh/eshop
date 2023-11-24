@@ -18,7 +18,6 @@ const updatequantity = asyncHandler(async (req, res) => {
 
     const [result] = await connection.execute(sql, [quantity, productid]);
 
-    // Check if any rows were affected, indicating a successful update
     if (result.affectedRows > 0) {
       res.status(200).json({
         message: "Quantity updated",
@@ -29,7 +28,7 @@ const updatequantity = asyncHandler(async (req, res) => {
       });
     }
 
-    await connection.end(); // Close the database connection
+    await connection.end();
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "An error occurred." });

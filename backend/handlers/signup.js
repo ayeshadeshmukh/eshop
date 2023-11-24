@@ -1,12 +1,12 @@
 const mysql = require("mysql2/promise");
-const sendEmail = require("../nodeMailer/NodeMailer")
+const sendEmail = require("../nodeMailer/NodeMailer");
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
   password: "root",
   database: "eshop",
   port: 3307,
-  connectionLimit: 20, // Adjust the connection limit as needed
+  connectionLimit: 20,
 });
 
 const signup = async (req, res) => {
@@ -31,8 +31,8 @@ const signup = async (req, res) => {
         );
 
         console.log("1 record inserted");
-        // You should handle the sending of the email here
-         sendEmail(email, "welcome", "Thankyou for registering with us");
+
+        sendEmail(email, "welcome", "Thankyou for registering with us");
         res.status(201).json({
           message: "1 record inserted",
         });
@@ -42,7 +42,7 @@ const signup = async (req, res) => {
         });
       }
     } finally {
-      connection.release(); // Release the connection back to the pool
+      connection.release();
     }
   } catch (error) {
     console.error(error);

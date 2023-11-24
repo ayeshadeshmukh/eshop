@@ -1,9 +1,8 @@
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
 
-const watchwoman = (req, res, next )=>{
-  console.log("Validation successful!")
-  next();  
-}  
+const watchwoman = (req, res, next) => {
+  console.log("Validation successful!");
+  next();
+};
 
-
-module.exports = watchwoman; 
+module.exports = watchwoman;
